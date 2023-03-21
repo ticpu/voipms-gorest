@@ -12,7 +12,7 @@ import (
 
 type options struct {
 	Username string
-	Password string
+	ApiKey   string
 	ApiUrl   string
 }
 
@@ -27,21 +27,21 @@ func main() {
 	}
 
 	opts.Username = os.Getenv("VOIPMS_USERNAME")
-	opts.Password = os.Getenv("VOIPMS_PASSWORD")
+	opts.ApiKey = os.Getenv("VOIPMS_API_KEY")
 	opts.ApiUrl = os.Getenv("VOIPMS_API_URL")
 
 	rootCmd.PersistentFlags().StringVarP(&opts.Username, "username", "u", opts.Username, "VoIP.ms account email address")
-	rootCmd.PersistentFlags().StringVarP(&opts.Password, "password", "p", opts.Password, "VoIP.ms API password")
+	rootCmd.PersistentFlags().StringVarP(&opts.ApiKey, "api-key", "p", opts.ApiKey, "VoIP.ms API key")
 	rootCmd.PersistentFlags().StringVar(&opts.ApiUrl, "api-url", opts.ApiUrl, "VoIP.ms API URL")
 
-	if len(opts.Username) == 0 || len(opts.Password) == 0 {
-		log.Fatalln("username and API password are both required")
+	if len(opts.Username) == 0 || len(opts.ApiKey) == 0 {
+		log.Fatalln("username and API key are both required")
 	}
 
 	if opts.ApiUrl != "" {
-		vms = voipms.NewVoIpMsClientWithUrl(opts.Username, opts.Password, opts.ApiUrl)
+		vms = voipms.NewVoIpMsClientWithUrl(opts.Username, opts.ApiKey, opts.ApiUrl)
 	} else {
-		vms = voipms.NewVoIpMsClient(opts.Username, opts.Password)
+		vms = voipms.NewVoIpMsClient(opts.Username, opts.ApiKey)
 	}
 
 	rootCmd.AddCommand(&cobra.Command{
