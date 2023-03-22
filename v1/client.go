@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	RestAPIURL       = "https://voip.ms/api/v1/rest.php"
-	voipmsTimeFormat = "2006-01-02 15:04:05"
+	RestAPIURL           = "https://voip.ms/api/v1/rest.php"
+	voipmsDateTimeFormat = "2006-01-02 15:04:05"
+	voipmsDateFormat     = "2006-01-02"
 )
 
 type VoIpMsApi struct {
@@ -21,15 +22,48 @@ type VoIpMsApi struct {
 	ApiUrl      string
 }
 
-type VoIpMsTime struct {
+type VoIpMsDateTime struct {
 	time.Time
 }
 
-func (vmsTime *VoIpMsTime) UnmarshalJSON(b []byte) (err error) {
+func (vmsDateTime *VoIpMsDateTime) UnmarshalJSON(b []byte) (err error) {
 	s := string(b)
 	s = s[1 : len(s)-1]
-	vmsTime.Time, err = time.Parse(voipmsTimeFormat, s)
+	vmsDateTime.Time, err = time.Parse(voipmsDateTimeFormat, s)
 	return
+}
+
+type VoIpMsDate struct {
+	time.Time
+}
+
+func (vmsTime *VoIpMsDate) UnmarshalJSON(b []byte) (err error) {
+	s := string(b)
+	s = s[1 : len(s)-1]
+	vmsTime.Time, err = time.Parse(voipmsDateFormat, s)
+	return
+}
+
+type VoIpMsStringInt int
+
+func (sa *VoIpMsStringInt) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err == nil {
+		if s == "1" {
+			*sa = 1
+		} else {
+			*sa = 0
+		}
+		return nil
+	}
+	var i int
+	err = json.Unmarshal(b, &i)
+	if err != nil {
+		return err
+	}
+	*sa = VoIpMsStringInt(i)
+	return nil
 }
 
 func toURLValues(v reflect.Value) url2.Values {
@@ -89,10 +123,14 @@ func (r *BaseRequest) ToURLValues() *url2.Values {
 
 type BaseResponse struct {
 	Success string `json:"success"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	RawText string
 }
 
 func ParseBaseResponse(data *[]byte) (*BaseResponse, error) {
 	response := &BaseResponse{}
+	response.RawText = string(*data)
 	if err := json.Unmarshal(*data, response); err != nil {
 		return nil, err
 	}

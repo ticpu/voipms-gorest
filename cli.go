@@ -54,6 +54,7 @@ func main() {
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "getserversinfo [POP]",
 		Short: "Get information about VoIP.ms servers",
+		Args:  cobra.RangeArgs(0, 1),
 		Run:   getServersInfo,
 	})
 
@@ -64,16 +65,37 @@ func main() {
 		Run:   getRegistrationStatus,
 	})
 
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "getclients [CLIENT]",
+		Short: "Get a list of clients",
+		Args:  cobra.RangeArgs(0, 1),
+		Run:   getClients,
+	})
+
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "getdidinfo [DID] [CLIENT]",
+		Short: "Get a list of DIDs",
+		Args:  cobra.RangeArgs(0, 2),
+		Run:   getDidInfo,
+	})
+
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "getdidinfoforclient CLIENT [DID]",
+		Short: "Get a list of DIDs for a client",
+		Args:  cobra.RangeArgs(1, 2),
+		Run:   getDidInfoForClient,
+	})
+
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func help(cmd *cobra.Command, args []string) {
-	cmd.Help()
+func help(cmd *cobra.Command, _ []string) {
+	_ = cmd.Help()
 }
 
-func setDidPop(cmd *cobra.Command, args []string) {
+func setDidPop(_ *cobra.Command, args []string) {
 	did := args[0]
 	pop := args[1]
 	if response, err := vms.SetDidPopByHostname(did, pop); err != nil {
@@ -93,7 +115,68 @@ func printServerInfo(server *voipms.ServerInfo) {
 	fmt.Printf("%d %s (%s : %s) %s\n", server.ServerPOP, server.ServerName, server.ServerHostname, server.ServerIP, recommended)
 }
 
-func getServersInfo(cmd *cobra.Command, args []string) {
+func getClients(_ *cobra.Command, args []string) {
+	var (
+		err     error
+		clients *voipms.BaseResponse
+	)
+
+	if len(args) == 1 {
+		clients, err = vms.GetClientOneClient(args[0])
+	} else {
+		clients, err = vms.GetClients()
+	}
+
+	if err != nil {
+		log.Fatalf("error while fetching clients: %v", err)
+	}
+
+	fmt.Printf("%v", clients)
+}
+
+func getDidInfo(_ *cobra.Command, args []string) {
+	var (
+		err  error
+		dids *voipms.GetDidInfoResponse
+	)
+
+	if len(args) == 2 {
+		dids, err = vms.GetDidInfo(args[1], args[0])
+	} else if len(args) == 1 {
+		dids, err = vms.GetDidInfo("", args[0])
+	} else {
+		dids, err = vms.GetAllDidInfo()
+	}
+
+	if err != nil {
+		log.Fatalf("error while fetching did info: %v", err)
+	}
+
+	fmt.Printf("%v", dids)
+}
+
+func getDidInfoForClient(_ *cobra.Command, args []string) {
+	var (
+		err  error
+		dids *voipms.GetDidInfoResponse
+	)
+
+	if len(args) == 2 {
+		dids, err = vms.GetDidInfo(args[0], args[1])
+	} else if len(args) == 1 {
+		dids, err = vms.GetDidInfo(args[0], "")
+	} else {
+		log.Fatalf("need at least a client for this command: %v", err)
+	}
+
+	if err != nil {
+		log.Fatalf("error while fetching did info: %v", err)
+	}
+
+	fmt.Printf("%v", dids)
+}
+
+func getServersInfo(_ *cobra.Command, args []string) {
 
 	if len(args) == 1 {
 		var (
@@ -126,7 +209,7 @@ func getServersInfo(cmd *cobra.Command, args []string) {
 	}
 }
 
-func getRegistrationStatus(cmd *cobra.Command, args []string) {
+func getRegistrationStatus(_ *cobra.Command, args []string) {
 	did := args[0]
 	if response, err := vms.GetRegistrationStatus(did); err != nil {
 		log.Fatalf("error getting registration status %v", err)

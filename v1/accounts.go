@@ -12,22 +12,27 @@ type GetRegistrationStatus struct {
 	Account string `url:"account"`
 }
 
+type GetClientsRequest struct {
+	BaseRequest
+	Client string `url:"client"`
+}
+
 type RegistrationStatus struct {
-	Account           string     `json:"account"`
-	ServerName        string     `json:"server_name"`
-	ServerShortname   string     `json:"server_shortname"`
-	ServerHostname    string     `json:"server_hostname"`
-	ServerIP          string     `json:"server_ip"`
-	ServerCountry     string     `json:"server_country"`
-	ServerPOP         string     `json:"server_pop"`
-	RegisterIP        string     `json:"register_ip"`
-	RegisterPort      string     `json:"register_port"`
-	RegisterNext      VoIpMsTime `json:"register_next"`
-	RegisterProtocol  string     `json:"register_protocol"`
-	RegisterTransport string     `json:"register_transport"`
-	RegisterUseragent string     `json:"register_useragent"`
-	Rerouted          int        `json:"rerouted"`
-	FromServerPOP     int        `json:"from_server_pop"`
+	Account           string         `json:"account"`
+	ServerName        string         `json:"server_name"`
+	ServerShortname   string         `json:"server_shortname"`
+	ServerHostname    string         `json:"server_hostname"`
+	ServerIP          string         `json:"server_ip"`
+	ServerCountry     string         `json:"server_country"`
+	ServerPOP         string         `json:"server_pop"`
+	RegisterIP        string         `json:"register_ip"`
+	RegisterPort      string         `json:"register_port"`
+	RegisterNext      VoIpMsDateTime `json:"register_next"`
+	RegisterProtocol  string         `json:"register_protocol"`
+	RegisterTransport string         `json:"register_transport"`
+	RegisterUseragent string         `json:"register_useragent"`
+	Rerouted          int            `json:"rerouted"`
+	FromServerPOP     int            `json:"from_server_pop"`
 }
 
 type GetRegistrationStatusResponse struct {
@@ -50,6 +55,27 @@ func ParseGetRegistrationStatus(data *[]byte) (*GetRegistrationStatusResponse, e
 		return nil, err
 	}
 	return response, nil
+}
+
+func (vms *VoIpMsApi) GetClientOneClient(client string) (*BaseResponse, error) {
+	var (
+		err  error
+		data *[]byte
+	)
+
+	data, err = vms.NewHttpRequest(http.MethodGet, "getClients", &GetClientsRequest{
+		Client: client,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseBaseResponse(data)
+}
+
+func (vms *VoIpMsApi) GetClients() (*BaseResponse, error) {
+	return vms.GetClientOneClient("")
 }
 
 func (vms *VoIpMsApi) GetRegistrationStatus(account string) (*GetRegistrationStatusResponse, error) {
