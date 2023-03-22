@@ -50,19 +50,19 @@ type DIDInfo struct {
 	ResellerMinute        string          `json:"reseller_minute"`
 	ResellerSetup         string          `json:"reseller_setup"`
 	SMSAvailable          VoIpMsStringInt `json:"sms_available"`
-	SMSEnabled            string          `json:"sms_enabled"`
+	SMSEnabled            VoIpMsStringInt `json:"sms_enabled"`
 	Transcribe            string          `json:"transcribe"`
 	TranscriptionLocale   string          `json:"transcription_locale"`
 	TranscriptionEmail    string          `json:"transcription_email"`
 	MMSAvailable          VoIpMsStringInt `json:"mms_available"`
 	SMSEmail              string          `json:"sms_email"`
-	SMSEmailEnabled       string          `json:"sms_email_enabled"`
+	SMSEmailEnabled       VoIpMsStringInt `json:"sms_email_enabled"`
 	SMSForward            string          `json:"sms_forward"`
-	SMSForwardEnabled     string          `json:"sms_forward_enabled"`
+	SMSForwardEnabled     VoIpMsStringInt `json:"sms_forward_enabled"`
 	SMSURLCallback        string          `json:"sms_url_callback"`
-	SMSURLCallbackEnabled string          `json:"sms_url_callback_enabled"`
+	SMSURLCallbackEnabled VoIpMsStringInt `json:"sms_url_callback_enabled"`
 	SMSURLCallbackRetry   string          `json:"sms_url_callback_retry"`
-	SMPPEnabled           string          `json:"smpp_enabled"`
+	SMPPEnabled           VoIpMsStringInt `json:"smpp_enabled"`
 	SMPPURL               string          `json:"smpp_url"`
 	SMPPUser              string          `json:"smpp_user"`
 	SMPPPass              string          `json:"smpp_pass"`
