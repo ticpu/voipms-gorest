@@ -21,13 +21,12 @@ func (r *GetServersInfo) ToURLValues() *url2.Values {
 }
 
 type ServerInfo struct {
-	ServerName            string `json:"server_name"`
-	ServerShortname       string `json:"server_shortname"`
-	ServerHostname        string `json:"server_hostname"`
-	ServerIP              string `json:"server_ip"`
-	ServerCountry         string `json:"server_country"`
-	ServerPOP             int
-	ServerPOPText         string `json:"server_pop"`
+	ServerName            string          `json:"server_name"`
+	ServerShortname       string          `json:"server_shortname"`
+	ServerHostname        string          `json:"server_hostname"`
+	ServerIP              string          `json:"server_ip"`
+	ServerCountry         string          `json:"server_country"`
+	ServerPOP             VoIpMsStringInt `json:"server_pop"`
 	ServerRecommended     bool
 	ServerRecommendedText string `json:"server_recommended"`
 }
@@ -40,18 +39,8 @@ type GetServersInfoResponse struct {
 func ParseGetServersInfo(data *[]byte) (*GetServersInfoResponse, error) {
 	var err error
 	response := &GetServersInfoResponse{}
-	if err := json.Unmarshal(*data, response); err != nil {
+	if err = json.Unmarshal(*data, response); err != nil {
 		return nil, err
-	}
-	for k, server := range response.Servers {
-		if server.ServerRecommendedText == "Yes" {
-			response.Servers[k].ServerRecommended = true
-		} else {
-			response.Servers[k].ServerRecommended = false
-		}
-		if response.Servers[k].ServerPOP, err = strconv.Atoi(server.ServerPOPText); err != nil {
-			response.Servers[k].ServerPOP = -1
-		}
 	}
 	return response, nil
 }

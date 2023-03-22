@@ -34,7 +34,7 @@ type DIDInfo struct {
 	FailoverUnreachable   string          `json:"failover_unreachable"`
 	FailoverNoAnswer      string          `json:"failover_noanswer"`
 	Voicemail             string          `json:"voicemail"`
-	Pop                   string          `json:"pop"`
+	Pop                   VoIpMsStringInt `json:"pop"`
 	Dialtime              string          `json:"dialtime"`
 	CNAM                  string          `json:"cnam"`
 	E911                  string          `json:"e911"`
@@ -142,7 +142,7 @@ func (vms *VoIpMsApi) GetDidInfo(client string, did string) (*DIDInfo, error) {
 	return nil, fmt.Errorf("couldn't find did %s", did)
 }
 
-func (vms *VoIpMsApi) SetDidPop(did string, pop int) (*BaseResponse, error) {
+func (vms *VoIpMsApi) SetDidPop(did string, pop VoIpMsStringInt) (*BaseResponse, error) {
 	var (
 		err  error
 		data *[]byte
@@ -150,7 +150,7 @@ func (vms *VoIpMsApi) SetDidPop(did string, pop int) (*BaseResponse, error) {
 
 	data, err = vms.NewHttpRequest(http.MethodPatch, "setDIDPOP", &SetDidPopRequest{
 		Did: did,
-		Pop: pop,
+		Pop: int(pop),
 	})
 
 	if err != nil {

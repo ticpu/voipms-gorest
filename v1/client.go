@@ -7,6 +7,7 @@ import (
 	"net/http"
 	url2 "net/url"
 	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -44,25 +45,57 @@ func (vmsTime *VoIpMsDate) UnmarshalJSON(b []byte) (err error) {
 	return
 }
 
-type VoIpMsStringInt int
+type VoIpMsStringBool bool
 
-func (sa *VoIpMsStringInt) UnmarshalJSON(b []byte) error {
-	var s string
-	err := json.Unmarshal(b, &s)
+func (valueRef *VoIpMsStringBool) UnmarshalJSON(data []byte) error {
+	var boolString string
+
+	err := json.Unmarshal(data, &boolString)
+
 	if err == nil {
-		if s == "1" {
-			*sa = 1
+		if boolString == "Yes" {
+			*valueRef = true
+		} else if boolString == "No" {
+			*valueRef = false
 		} else {
-			*sa = 0
+			return fmt.Errorf("value for bool was %v, expecting Yes or No", boolString)
 		}
 		return nil
 	}
-	var i int
-	err = json.Unmarshal(b, &i)
+
+	var value bool
+	err = json.Unmarshal(data, &value)
 	if err != nil {
 		return err
 	}
-	*sa = VoIpMsStringInt(i)
+	*valueRef = VoIpMsStringBool(value)
+	return nil
+}
+
+type VoIpMsStringInt int64
+
+func (valueRef *VoIpMsStringInt) UnmarshalJSON(data []byte) error {
+	var (
+		intString string
+		i         int64
+		err       error
+	)
+
+	err = json.Unmarshal(data, &intString)
+
+	if err == nil {
+		i, err = strconv.ParseInt(intString, 10, 64)
+		if err == nil {
+			*valueRef = VoIpMsStringInt(i)
+			return nil
+		}
+	}
+
+	err = json.Unmarshal(data, &i)
+	if err != nil {
+		return err
+	}
+	*valueRef = VoIpMsStringInt(i)
 	return nil
 }
 
