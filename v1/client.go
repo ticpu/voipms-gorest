@@ -21,6 +21,7 @@ type VoIpMsApi struct {
 	ApiUsername string
 	ApiPassword string
 	ApiUrl      string
+	ApiTimeout  time.Duration
 }
 
 type VoIpMsDateTime struct {
@@ -171,14 +172,10 @@ func ParseBaseResponse(data *[]byte) (*BaseResponse, error) {
 }
 
 func NewVoIpMsClient(username string, password string) *VoIpMsApi {
-	return NewVoIpMsClientWithUrl(username, password, RestAPIURL)
-}
-
-func NewVoIpMsClientWithUrl(username string, password string, url string) *VoIpMsApi {
 	return &VoIpMsApi{
 		ApiUsername: username,
 		ApiPassword: password,
-		ApiUrl:      url,
+		ApiUrl:      RestAPIURL,
 	}
 }
 
@@ -194,7 +191,7 @@ func (vms *VoIpMsApi) NewHttpRequest(httpMethod string, apiMethod string, reques
 	)
 
 	httpClient = &http.Client{
-		Timeout: 2 * time.Second,
+		Timeout: vms.ApiTimeout,
 	}
 
 	requestData.SetApiUser(vms.ApiUsername)

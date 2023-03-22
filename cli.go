@@ -5,21 +5,24 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 	voipms "github.com/ticpu/voipms-gorest/v1"
 )
 
 type options struct {
-	Username string
-	ApiKey   string
-	ApiUrl   string
+	Username   string
+	ApiKey     string
+	ApiUrl     string
+	ApiTimeout time.Duration
 }
 
 var opts options
 var vms *voipms.VoIpMsApi
 
 func main() {
+	var err error
 	rootCmd := &cobra.Command{
 		Use:   "voipms",
 		Short: "CLI for VoIP.ms API",
@@ -29,17 +32,31 @@ func main() {
 	opts.Username = os.Getenv("VOIPMS_USERNAME")
 	opts.ApiKey = os.Getenv("VOIPMS_API_KEY")
 	opts.ApiUrl = os.Getenv("VOIPMS_API_URL")
+	apiTimeout := os.Getenv("VOIPMS_API_TIMEOUT")
+	if len(apiTimeout) > 0 {
+		if opts.ApiTimeout, err = time.ParseDuration(apiTimeout); err != nil {
+			log.Fatalf("invalid duration %s: %v", apiTimeout, err)
+		}
+	} else {
+		opts.ApiTimeout = 2 * time.Second
+	}
 
 	rootCmd.PersistentFlags().StringVarP(&opts.Username, "username", "u", opts.Username, "VoIP.ms account email address")
 	rootCmd.PersistentFlags().StringVarP(&opts.ApiKey, "api-key", "p", opts.ApiKey, "VoIP.ms API key")
 	rootCmd.PersistentFlags().StringVar(&opts.ApiUrl, "api-url", opts.ApiUrl, "VoIP.ms API URL")
+	rootCmd.PersistentFlags().DurationVar(&opts.ApiTimeout, "api-timeout", opts.ApiTimeout, "Timeout for HTTP requests, defaults to 2")
 
 	if len(opts.Username) == 0 || len(opts.ApiKey) == 0 {
 		log.Fatalln("username and API key are both required")
 	}
 
 	if opts.ApiUrl != "" {
-		vms = voipms.NewVoIpMsClientWithUrl(opts.Username, opts.ApiKey, opts.ApiUrl)
+		vms = &voipms.VoIpMsApi{
+			ApiUsername: opts.Username,
+			ApiPassword: opts.ApiKey,
+			ApiUrl:      opts.ApiUrl,
+			ApiTimeout:  opts.ApiTimeout,
+		}
 	} else {
 		vms = voipms.NewVoIpMsClient(opts.Username, opts.ApiKey)
 	}
