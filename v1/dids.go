@@ -82,10 +82,38 @@ func ParseGetDidsInfo(data *[]byte) (*GetDidInfoResponse, error) {
 }
 
 func (vms *VoIpMsApi) GetAllDidInfo() (*GetDidInfoResponse, error) {
-	return vms.GetDidInfo("", "")
+	var (
+		err  error
+		data *[]byte
+	)
+
+	data, err = vms.NewHttpRequest(http.MethodGet, "getDIDsInfo", &GetDidInfoRequest{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseGetDidsInfo(data)
 }
 
-func (vms *VoIpMsApi) GetDidInfo(client string, did string) (*GetDidInfoResponse, error) {
+func (vms *VoIpMsApi) GetAllClientDidInfo(client string) (*GetDidInfoResponse, error) {
+	var (
+		err  error
+		data *[]byte
+	)
+
+	data, err = vms.NewHttpRequest(http.MethodGet, "getDIDsInfo", &GetDidInfoRequest{
+		Client: client,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseGetDidsInfo(data)
+}
+
+func (vms *VoIpMsApi) GetDidInfo(client string, did string) (*DIDInfo, error) {
 	var (
 		err     error
 		data    *[]byte
@@ -105,18 +133,13 @@ func (vms *VoIpMsApi) GetDidInfo(client string, did string) (*GetDidInfoResponse
 		return nil, err
 	}
 
-	if did != "" {
-		for i := range didInfo.DIDs {
-			if didInfo.DIDs[i].DID == did {
-				return &GetDidInfoResponse{
-					BaseResponse: didInfo.BaseResponse,
-					DIDs:         []DIDInfo{didInfo.DIDs[i]},
-				}, nil
-			}
+	for i := range didInfo.DIDs {
+		if didInfo.DIDs[i].DID == did {
+			return &didInfo.DIDs[i], nil
 		}
 	}
 
-	return didInfo, err
+	return nil, fmt.Errorf("couldn't find did %s", did)
 }
 
 func (vms *VoIpMsApi) SetDidPop(did string, pop int) (*BaseResponse, error) {

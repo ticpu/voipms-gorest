@@ -73,10 +73,17 @@ func main() {
 	})
 
 	rootCmd.AddCommand(&cobra.Command{
-		Use:   "getdidinfo [DID] [CLIENT]",
+		Use:   "getdidinfo DID [CLIENT]",
 		Short: "Get a list of DIDs",
-		Args:  cobra.RangeArgs(0, 2),
+		Args:  cobra.RangeArgs(1, 2),
 		Run:   getDidInfo,
+	})
+
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "getalldidsinfo [DID] [CLIENT]",
+		Short: "Get a list of DIDs",
+		Args:  cobra.NoArgs,
+		Run:   getAllDidsInfo,
 	})
 
 	rootCmd.AddCommand(&cobra.Command{
@@ -136,35 +143,51 @@ func getClients(_ *cobra.Command, args []string) {
 
 func getDidInfo(_ *cobra.Command, args []string) {
 	var (
-		err  error
-		dids *voipms.GetDidInfoResponse
+		err error
+		did *voipms.DIDInfo
 	)
 
 	if len(args) == 2 {
-		dids, err = vms.GetDidInfo(args[1], args[0])
+		did, err = vms.GetDidInfo(args[1], args[0])
 	} else if len(args) == 1 {
-		dids, err = vms.GetDidInfo("", args[0])
-	} else {
-		dids, err = vms.GetAllDidInfo()
+		did, err = vms.GetDidInfo("", args[0])
 	}
 
 	if err != nil {
 		log.Fatalf("error while fetching did info: %v", err)
 	}
 
-	fmt.Printf("%v", dids)
+	fmt.Printf("%v", *did)
 }
 
-func getDidInfoForClient(_ *cobra.Command, args []string) {
+func getAllDidsInfo(_ *cobra.Command, _ []string) {
 	var (
 		err  error
 		dids *voipms.GetDidInfoResponse
 	)
 
+	dids, err = vms.GetAllDidInfo()
+
+	if err != nil {
+		log.Fatalf("error while fetching did info: %v", err)
+	}
+
+	fmt.Printf("%v", dids.DIDs)
+}
+
+func getDidInfoForClient(_ *cobra.Command, args []string) {
+	var (
+		err  error
+		did  *voipms.DIDInfo
+		dids *voipms.GetDidInfoResponse
+	)
+
 	if len(args) == 2 {
-		dids, err = vms.GetDidInfo(args[0], args[1])
+		if did, err = vms.GetDidInfo(args[0], args[1]); err == nil {
+			dids = &voipms.GetDidInfoResponse{DIDs: []voipms.DIDInfo{*did}}
+		}
 	} else if len(args) == 1 {
-		dids, err = vms.GetDidInfo(args[0], "")
+		dids, err = vms.GetAllClientDidInfo(args[0])
 	} else {
 		log.Fatalf("need at least a client for this command: %v", err)
 	}
@@ -173,7 +196,7 @@ func getDidInfoForClient(_ *cobra.Command, args []string) {
 		log.Fatalf("error while fetching did info: %v", err)
 	}
 
-	fmt.Printf("%v", dids)
+	fmt.Printf("%v", dids.DIDs)
 }
 
 func getServersInfo(_ *cobra.Command, args []string) {
