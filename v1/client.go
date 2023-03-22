@@ -101,6 +101,33 @@ func (valueRef *VoIpMsStringInt) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type VoIpMsStringFloat float64
+
+func (valueRef *VoIpMsStringFloat) UnmarshalJSON(data []byte) error {
+	var (
+		floatString string
+		f           float64
+		err         error
+	)
+
+	err = json.Unmarshal(data, &floatString)
+
+	if err == nil {
+		f, err = strconv.ParseFloat(floatString, 64)
+		if err == nil {
+			*valueRef = VoIpMsStringFloat(f)
+			return nil
+		}
+	}
+
+	err = json.Unmarshal(data, &f)
+	if err != nil {
+		return err
+	}
+	*valueRef = VoIpMsStringFloat(f)
+	return nil
+}
+
 func toURLValues(v reflect.Value) url2.Values {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
