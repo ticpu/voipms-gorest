@@ -31,7 +31,11 @@ type VoIpMsDateTime struct {
 
 func (vmsDateTime *VoIpMsDateTime) UnmarshalJSON(b []byte) (err error) {
 	s := string(b)
-	s = s[1 : len(s)-1]
+	s = strings.Trim(s, "\"")
+	if s == "0000-00-00 00:00:00" {
+		vmsDateTime.Time = time.Time{}
+		return nil
+	}
 	vmsDateTime.Time, err = time.Parse(voipmsDateTimeFormat, s)
 	return
 }
@@ -40,10 +44,14 @@ type VoIpMsDate struct {
 	time.Time
 }
 
-func (vmsTime *VoIpMsDate) UnmarshalJSON(b []byte) (err error) {
+func (vmsDate *VoIpMsDate) UnmarshalJSON(b []byte) (err error) {
 	s := string(b)
-	s = s[1 : len(s)-1]
-	vmsTime.Time, err = time.Parse(voipmsDateFormat, s)
+	s = strings.Trim(s, "\"")
+	if s == "0000-00-00" {
+		vmsDate.Time = time.Time{}
+		return nil
+	}
+	vmsDate.Time, err = time.Parse(voipmsDateFormat, s)
 	return
 }
 
