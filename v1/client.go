@@ -8,6 +8,7 @@ import (
 	url2 "net/url"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -179,7 +180,7 @@ func NewVoIpMsClient(username string, password string) *VoIpMsApi {
 	}
 }
 
-func (vms *VoIpMsApi) NewHttpRequest(httpMethod string, apiMethod string, requestData RequestParams) (*[]byte, error) {
+func (vms *VoIpMsApi) _newHttpRequest(httpMethod string, apiMethod string, requestData RequestParams) (*[]byte, error) {
 	var (
 		err          error
 		url          *url2.URL
@@ -230,4 +231,14 @@ func (vms *VoIpMsApi) NewHttpRequest(httpMethod string, apiMethod string, reques
 	}
 
 	return &responseBody, nil
+}
+
+func (vms *VoIpMsApi) NewHttpRequest(httpMethod string, apiMethod string, requestData RequestParams) (*[]byte, error) {
+	data, err := vms._newHttpRequest(httpMethod, apiMethod, requestData)
+
+	if err != nil {
+		return nil, fmt.Errorf("%s", strings.Replace(err.Error(), vms.ApiPassword, "[REDACTED]", -1))
+	}
+
+	return data, err
 }
